@@ -249,7 +249,7 @@ public class XUserREST {
 	@GET
 	@Path("/users/{id}")
 	@Produces({ "application/xml", "application/json" })
-	@PreAuthorize("@rangerPreAuthSecurityHandler.isAPIAccessible(\"" + RangerAPIList.GET_X_USER + "\")")
+//	@PreAuthorize("@rangerPreAuthSecurityHandler.isAPIAccessible(\"" + RangerAPIList.GET_X_USER + "\")")
 	public VXUser getXUser(@PathParam("id") Long id) {
 		return xUserMgr.getXUser(id);
 	}
@@ -654,7 +654,7 @@ public class XUserREST {
 	@GET
 	@Path("/users/userName/{userName}")
 	@Produces({ "application/xml", "application/json" })
-	@PreAuthorize("@rangerPreAuthSecurityHandler.isAPIAccessible(\"" + RangerAPIList.GET_X_USER_BY_USER_NAME + "\")")
+//	@PreAuthorize("@rangerPreAuthSecurityHandler.isAPIAccessible(\"" + RangerAPIList.GET_X_USER_BY_USER_NAME + "\")")
 	public VXUser getXUserByUserName(@Context HttpServletRequest request,
 			@PathParam("userName") String userName) {
 		return xUserMgr.getXUserByUserName(userName);
@@ -710,7 +710,7 @@ public class XUserREST {
 	@GET
 	@Path("/{userId}/groups")
 	@Produces({ "application/xml", "application/json" })
-	@PreAuthorize("@rangerPreAuthSecurityHandler.isAPIAccessible(\"" + RangerAPIList.GET_X_USER_GROUPS + "\")")
+//	@PreAuthorize("@rangerPreAuthSecurityHandler.isAPIAccessible(\"" + RangerAPIList.GET_X_USER_GROUPS + "\")")
 	public VXGroupList getXUserGroups(@Context HttpServletRequest request, 
 			@PathParam("userId") Long id){
 		return xUserMgr.getXUserGroups(id);

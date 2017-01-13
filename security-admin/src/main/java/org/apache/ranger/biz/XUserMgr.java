@@ -580,9 +580,9 @@ public class XUserMgr extends XUserMgrBase {
 	public VXUser getXUser(Long id) {
 		VXUser vXUser=null;
 		vXUser=xUserService.readResourceWithOutLogin(id);
-		if(vXUser!=null && !hasAccessToModule(RangerConstants.MODULE_USER_GROUPS)){
-			vXUser=getMaskedVXUser(vXUser);
-		}
+//		if(vXUser!=null && !hasAccessToModule(RangerConstants.MODULE_USER_GROUPS)){
+//			vXUser=getMaskedVXUser(vXUser);
+//		}
 		return vXUser;
 	}
 

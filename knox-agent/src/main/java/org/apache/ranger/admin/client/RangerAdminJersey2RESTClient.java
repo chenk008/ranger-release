@@ -21,6 +21,7 @@ package org.apache.ranger.admin.client;
 
 import java.lang.reflect.Type;
 import java.util.Date;
+import java.util.List;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
@@ -269,6 +270,12 @@ public class RangerAdminJersey2RESTClient implements RangerAdminClient {
 		}
 		
 		return _client;
+	}
+
+	@Override
+	public List<String> getUserGroup(String user) throws Exception {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

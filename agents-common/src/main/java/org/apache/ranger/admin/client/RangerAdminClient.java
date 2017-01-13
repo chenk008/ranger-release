@@ -20,6 +20,8 @@
  package org.apache.ranger.admin.client;
 
 
+import java.util.List;
+
 import org.apache.ranger.plugin.util.GrantRevokeRequest;
 import org.apache.ranger.plugin.util.ServicePolicies;
 
@@ -32,4 +34,6 @@ public interface RangerAdminClient {
 	void grantAccess(GrantRevokeRequest request) throws Exception;
 
 	void revokeAccess(GrantRevokeRequest request) throws Exception;
+	
+    List<String> getUserGroup(String user) throws Exception;
 }

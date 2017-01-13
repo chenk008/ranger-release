@@ -17,31 +17,34 @@
  * under the License.
  */
 
- package org.apache.ranger.admin.client;
+package org.apache.ranger.admin.client;
 
-
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.WebResource;
+import java.util.Collections;
+import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.security.AccessControlException;
 import org.apache.ranger.admin.client.datatype.RESTResponse;
+import org.apache.ranger.admin.client.datatype.VXUser;
 import org.apache.ranger.authorization.hadoop.config.RangerConfiguration;
 import org.apache.ranger.plugin.util.GrantRevokeRequest;
 import org.apache.ranger.plugin.util.RangerRESTClient;
 import org.apache.ranger.plugin.util.RangerRESTUtils;
 import org.apache.ranger.plugin.util.ServicePolicies;
 
+import com.google.common.collect.Lists;
+import com.google.gson.Gson;
+import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.api.client.WebResource;
 
 public class RangerAdminRESTClient implements RangerAdminClient {
 	private static final Log LOG = LogFactory.getLog(RangerAdminRESTClient.class);
- 
-	private String           serviceName = null;
-	private String           pluginId    = null;
-	private RangerRESTClient restClient  = null;
-	private RangerRESTUtils  restUtils   = new RangerRESTUtils();
 
+	private String serviceName = null;
+	private String pluginId = null;
+	private RangerRESTClient restClient = null;
+	private RangerRESTUtils restUtils = new RangerRESTUtils();
 
 	public RangerAdminRESTClient() {
 	}
@@ -49,41 +52,49 @@ public class RangerAdminRESTClient implements RangerAdminClient {
 	@Override
 	public void init(String serviceName, String appId, String propertyPrefix) {
 		this.serviceName = serviceName;
-		this.pluginId    = restUtils.getPluginId(serviceName, appId);
+		this.pluginId = restUtils.getPluginId(serviceName, appId);
 
-		String url               		= RangerConfiguration.getInstance().get(propertyPrefix + ".policy.rest.url");
-		String sslConfigFileName 		= RangerConfiguration.getInstance().get(propertyPrefix + ".policy.rest.ssl.config.file");
-		int	 restClientConnTimeOutMs	= RangerConfiguration.getInstance().getInt(propertyPrefix + ".policy.rest.client.connection.timeoutMs", 120 * 1000);
-		int	 restClientReadTimeOutMs	= RangerConfiguration.getInstance().getInt(propertyPrefix + ".policy.rest.client.read.timeoutMs", 30 * 1000);
+		String url = RangerConfiguration.getInstance().get(propertyPrefix + ".policy.rest.url");
+		LOG.info(RangerConfiguration.getInstance());
+		LOG.info(url);
 
-		init(url, sslConfigFileName, restClientConnTimeOutMs , restClientReadTimeOutMs);
+		String sslConfigFileName = RangerConfiguration.getInstance()
+				.get(propertyPrefix + ".policy.rest.ssl.config.file");
+		int restClientConnTimeOutMs = RangerConfiguration.getInstance()
+				.getInt(propertyPrefix + ".policy.rest.client.connection.timeoutMs", 120 * 1000);
+		int restClientReadTimeOutMs = RangerConfiguration.getInstance()
+				.getInt(propertyPrefix + ".policy.rest.client.read.timeoutMs", 30 * 1000);
+
+		init(url, sslConfigFileName, restClientConnTimeOutMs, restClientReadTimeOutMs);
 	}
 
 	@Override
 	public ServicePolicies getServicePoliciesIfUpdated(long lastKnownVersion) throws Exception {
-		if(LOG.isDebugEnabled()) {
+		if (LOG.isDebugEnabled()) {
 			LOG.debug("==> RangerAdminRESTClient.getServicePoliciesIfUpdated(" + lastKnownVersion + ")");
 		}
 
 		ServicePolicies ret = null;
 
-		WebResource webResource = createWebResource(RangerRESTUtils.REST_URL_POLICY_GET_FOR_SERVICE_IF_UPDATED + serviceName)
-										.queryParam(RangerRESTUtils.REST_PARAM_LAST_KNOWN_POLICY_VERSION, Long.toString(lastKnownVersion))
-										.queryParam(RangerRESTUtils.REST_PARAM_PLUGIN_ID, pluginId);
+		WebResource webResource = createWebResource(
+				RangerRESTUtils.REST_URL_POLICY_GET_FOR_SERVICE_IF_UPDATED + serviceName)
+						.queryParam(RangerRESTUtils.REST_PARAM_LAST_KNOWN_POLICY_VERSION,
+								Long.toString(lastKnownVersion))
+						.queryParam(RangerRESTUtils.REST_PARAM_PLUGIN_ID, pluginId);
 		ClientResponse response = webResource.accept(RangerRESTUtils.REST_MIME_TYPE_JSON).get(ClientResponse.class);
 
-		if(response != null && response.getStatus() == 200) {
+		if (response != null && response.getStatus() == 200) {
 			ret = response.getEntity(ServicePolicies.class);
-		} else if(response != null && response.getStatus() == 304) {
+		} else if (response != null && response.getStatus() == 304) {
 			// no change
 		} else {
 			RESTResponse resp = RESTResponse.fromClientResponse(response);
-			LOG.error("Error getting policies. request=" + webResource.toString() 
-					+ ", response=" + resp.toString() + ", serviceName=" + serviceName);
+			LOG.error("Error getting policies. request=" + webResource.toString() + ", response=" + resp.toString()
+					+ ", serviceName=" + serviceName);
 			throw new Exception(resp.getMessage());
 		}
 
-		if(LOG.isDebugEnabled()) {
+		if (LOG.isDebugEnabled()) {
 			LOG.debug("<== RangerAdminRESTClient.getServicePoliciesIfUpdated(" + lastKnownVersion + "): " + ret);
 		}
 
@@ -92,60 +103,62 @@ public class RangerAdminRESTClient implements RangerAdminClient {
 
 	@Override
 	public void grantAccess(GrantRevokeRequest request) throws Exception {
-		if(LOG.isDebugEnabled()) {
+		if (LOG.isDebugEnabled()) {
 			LOG.debug("==> RangerAdminRESTClient.grantAccess(" + request + ")");
 		}
 
 		WebResource webResource = createWebResource(RangerRESTUtils.REST_URL_SERVICE_GRANT_ACCESS + serviceName)
-										.queryParam(RangerRESTUtils.REST_PARAM_PLUGIN_ID, pluginId);
-		ClientResponse response = webResource.accept(RangerRESTUtils.REST_EXPECTED_MIME_TYPE).type(RangerRESTUtils.REST_EXPECTED_MIME_TYPE).post(ClientResponse.class, restClient.toJson(request));
+				.queryParam(RangerRESTUtils.REST_PARAM_PLUGIN_ID, pluginId);
+		ClientResponse response = webResource.accept(RangerRESTUtils.REST_EXPECTED_MIME_TYPE)
+				.type(RangerRESTUtils.REST_EXPECTED_MIME_TYPE).post(ClientResponse.class, restClient.toJson(request));
 
-		if(response != null && response.getStatus() != 200) {
+		if (response != null && response.getStatus() != 200) {
 			LOG.error("grantAccess() failed: HTTP status=" + response.getStatus());
 
-			if(response.getStatus() == 401) {
+			if (response.getStatus() == 401) {
 				throw new AccessControlException();
 			}
 
 			throw new Exception("HTTP " + response.getStatus());
-		} else if(response == null) {
-			throw new Exception("unknown error during grantAccess. serviceName="  + serviceName);
+		} else if (response == null) {
+			throw new Exception("unknown error during grantAccess. serviceName=" + serviceName);
 		}
 
-		if(LOG.isDebugEnabled()) {
+		if (LOG.isDebugEnabled()) {
 			LOG.debug("<== RangerAdminRESTClient.grantAccess(" + request + ")");
 		}
 	}
 
 	@Override
 	public void revokeAccess(GrantRevokeRequest request) throws Exception {
-		if(LOG.isDebugEnabled()) {
+		if (LOG.isDebugEnabled()) {
 			LOG.debug("==> RangerAdminRESTClient.revokeAccess(" + request + ")");
 		}
 
 		WebResource webResource = createWebResource(RangerRESTUtils.REST_URL_SERVICE_REVOKE_ACCESS + serviceName)
-										.queryParam(RangerRESTUtils.REST_PARAM_PLUGIN_ID, pluginId);
-		ClientResponse response = webResource.accept(RangerRESTUtils.REST_EXPECTED_MIME_TYPE).type(RangerRESTUtils.REST_EXPECTED_MIME_TYPE).post(ClientResponse.class, restClient.toJson(request));
+				.queryParam(RangerRESTUtils.REST_PARAM_PLUGIN_ID, pluginId);
+		ClientResponse response = webResource.accept(RangerRESTUtils.REST_EXPECTED_MIME_TYPE)
+				.type(RangerRESTUtils.REST_EXPECTED_MIME_TYPE).post(ClientResponse.class, restClient.toJson(request));
 
-		if(response != null && response.getStatus() != 200) {
+		if (response != null && response.getStatus() != 200) {
 			LOG.error("revokeAccess() failed: HTTP status=" + response.getStatus());
 
-			if(response.getStatus() == 401) {
+			if (response.getStatus() == 401) {
 				throw new AccessControlException();
 			}
 
 			throw new Exception("HTTP " + response.getStatus());
-		} else if(response == null) {
+		} else if (response == null) {
 			throw new Exception("unknown error. revokeAccess(). serviceName=" + serviceName);
 		}
 
-		if(LOG.isDebugEnabled()) {
+		if (LOG.isDebugEnabled()) {
 			LOG.debug("<== RangerAdminRESTClient.revokeAccess(" + request + ")");
 		}
 	}
 
-	private void init(String url, String sslConfigFileName, int restClientConnTimeOutMs , int restClientReadTimeOutMs ) {
-		if(LOG.isDebugEnabled()) {
+	private void init(String url, String sslConfigFileName, int restClientConnTimeOutMs, int restClientReadTimeOutMs) {
+		if (LOG.isDebugEnabled()) {
 			LOG.debug("==> RangerAdminRESTClient.init(" + url + ", " + sslConfigFileName + ")");
 		}
 
@@ -153,14 +166,79 @@ public class RangerAdminRESTClient implements RangerAdminClient {
 		restClient.setRestClientConnTimeOutMs(restClientConnTimeOutMs);
 		restClient.setRestClientReadTimeOutMs(restClientReadTimeOutMs);
 
-		if(LOG.isDebugEnabled()) {
+		if (LOG.isDebugEnabled()) {
 			LOG.debug("<== RangerAdminRESTClient.init(" + url + ", " + sslConfigFileName + ")");
 		}
 	}
 
 	private WebResource createWebResource(String url) {
+		LOG.info(restClient.getUrl());
 		WebResource ret = restClient.getResource(url);
-		
+
+		return ret;
+	}
+
+	@Override
+	public List<String> getUserGroup(String user) throws Exception {
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("==> RangerAdminRESTClient.getUserGroup(" + user + ")");
+		}
+
+		WebResource webResource = createWebResource("/service/xusers/users/userName/" + user);
+		ClientResponse response = webResource.accept(RangerRESTUtils.REST_MIME_TYPE_JSON).get(ClientResponse.class);
+
+		VXUser ret = null;
+		if (response != null && response.getStatus() == 200) {
+			ret = response.getEntity(VXUser.class);
+		} else if (response != null && response.getStatus() == 304) {
+			// no change
+		} else {
+			RESTResponse resp = RESTResponse.fromClientResponse(response);
+			LOG.error("Error getting policies. request=" + webResource.toString() + ", response=" + resp.toString()
+					+ ", serviceName=" + serviceName);
+			throw new Exception(resp.getMessage());
+		}
+
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("<== RangerAdminRESTClient.getServicePoliciesIfUpdated(" + user + "): " + ret);
+		}
+
+		if (ret != null) {
+			Long userId = ret.getId();
+			if (userId != null) {
+				VXUser data = getGroupByUserId(userId);
+				if (data != null) {
+					return Lists.newArrayList(data.getGroupNameList());
+				}
+			}
+		}
+		return Collections.emptyList();
+	}
+
+	private VXUser getGroupByUserId(Long userId) throws Exception {
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("==> RangerAdminRESTClient.getGroupByUserId(" + userId + ")");
+		}
+
+		WebResource webResource = createWebResource("/service/xusers/users/" + +userId);
+		ClientResponse response = webResource.accept(RangerRESTUtils.REST_MIME_TYPE_JSON).get(ClientResponse.class);
+		VXUser ret = null;
+		if (response != null && response.getStatus() == 200) {
+			String data = response.getEntity(String.class);
+			LOG.info(data);
+			ret = new Gson().fromJson(data, VXUser.class);
+		} else if (response != null && response.getStatus() == 304) {
+			// no change
+		} else {
+			RESTResponse resp = RESTResponse.fromClientResponse(response);
+			LOG.error("Error getting policies. request=" + webResource.toString() + ", response=" + resp.toString()
+					+ ", serviceName=" + serviceName);
+			throw new Exception(resp.getMessage());
+		}
+
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("<== RangerAdminRESTClient.getServicePoliciesIfUpdated(" + userId + "): " + ret);
+		}
 		return ret;
 	}
 }
