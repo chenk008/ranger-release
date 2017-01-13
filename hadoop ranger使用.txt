@@ -1,0 +1,41 @@
+HDFS配置
+http://hortonworks.com/blog/best-practices-in-hdfs-authorization-with-apache-ranger/
+http://www.datastart.cn/tech/2016/05/12/ranger.html
+
+1.安装ranger，需要安装mysql，同时将root密码配置在ranger中，启动ranger会在mysql生成ranger相关账号和库
+2.修改HDFS配置，设置ranger信息，配置文件、目录的默认权限 umask，重启
+3.在ranger admin上能看到HDFS中增加了一个管理项，所有HDFS相关策略都在这里配置
+4.修改hdfs的权限，设置为只有owner有权限：hadoop dfs -chmod -R 700 /，修改hdfs umask为027
+5.在ranger admin配置访问策略
+5.1 hbase用户赋权 /apps/hbase 递归 所有权限
+5.2 hadoop组 赋权 / 读权限
+
+------------------------------------------------
+Ranger修改（从测试环境替换）
+1.替换/usr/hdp/2.3.4.7-4/ranger-admin/ews/webapp/WEB-INF/classes下 
+org/apache/ranger/biz/XUserMgr.class
+org/apache/ranger/rest/XUserREST.class
+conf/security-applicationContext.xml
+重启ranger admin
+
+2.将/usr/hdp/2.3.4.7-4/hadoop/lib/ranger-plugins-common-0.5.0.jar部署到每台机器的相同目录下，
+在HDFS custom core-site配置中增加 hadoop.security.group.mapping=org.apache.hadoop.security.RangerGroupMappingServiceProvider
+重启namenode
+
+3.修改MapReduce2的classpath配置：增加/usr/hdp/current/hadoop-client/lib/*
+重启MapReduce2
+
+-------------------------------------------------
+HIVE配置
+1.在HIVE设置 Security的Authorization为Ranger；“Run as end user instead of Hive user”为true
+2.重启HiveServer2，在ranger admin上能看到Hive中增加了一个管理项
+3.将hive账号配置所有权限
+4.重启hiveserver2
+
+---------------------------------------------------
+账号管理
+1.hue上建立账号（组）
+2.ranger上建立同名账号（组）
+
+优化：
+1.打通ranger和hue，让从hue中同步账号信息
