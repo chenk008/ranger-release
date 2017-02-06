@@ -151,7 +151,7 @@ public class XUserMgr extends XUserMgrBase {
 	}
 
 	public void deleteXUser(Long id, boolean force) {
-		checkAdminAccess();
+//		checkAdminAccess();
 		if (force) {
 			SearchCriteria searchCriteria = new SearchCriteria();
 			searchCriteria.addParam("xUserId", id);
@@ -161,6 +161,8 @@ public class XUserMgr extends XUserMgrBase {
 			for (VXGroupUser groupUser : vxGroupUserList.getList()) {
 				xGroupUserDao.remove(groupUser.getId());
 			}
+			//TODO 需要删除x_policy_item_user_perm表对应的用户数据
+			
 			// TODO : Need to discuss, why we were not removing user from the
 			// system.
 
