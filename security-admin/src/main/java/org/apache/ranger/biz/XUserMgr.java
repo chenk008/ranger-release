@@ -548,7 +548,7 @@ public class XUserMgr extends XUserMgrBase {
 	}
 
 	public VXUser createXUserWithOutLogin(VXUser vXUser) {
-		checkAdminAccess();
+//		checkAdminAccess();
 		return xUserService.createXUserWithOutLogin(vXUser);
 	}
 

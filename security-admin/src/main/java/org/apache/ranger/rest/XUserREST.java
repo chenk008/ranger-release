@@ -270,6 +270,20 @@ public class XUserREST {
 		return xUserMgr.createXUserWithOutLogin(vXUser);
 	}
 	
+	/**
+	 * 提供对外接口
+	 * @param vXUser
+	 * @return
+	 */
+	@POST
+	@Path("/users/createUser")
+	@Produces({ "application/xml", "application/json" })
+//	@PreAuthorize("hasRole('ROLE_SYS_ADMIN')")
+	public VXUser createUser(VXUser vXUser) {
+		
+		return xUserMgr.createXUserWithOutLogin(vXUser);
+	}
+	
 	@POST
 	@Path("/users/userinfo")
 	@Produces({ "application/xml", "application/json" })
