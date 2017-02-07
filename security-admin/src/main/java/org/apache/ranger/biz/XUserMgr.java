@@ -78,6 +78,8 @@ import org.apache.ranger.view.VXUserList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.google.common.collect.Lists;
+
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.ranger.view.VXResponse;
@@ -568,7 +570,7 @@ public class XUserMgr extends XUserMgrBase {
 	}
 
 	public VXGroup createXGroupWithoutLogin(VXGroup vXGroup) {
-		checkAdminAccess();
+//		checkAdminAccess();
 		return xGroupService.createXGroupWithOutLogin(vXGroup);
 	}
 
@@ -1505,5 +1507,76 @@ public class XUserMgr extends XUserMgrBase {
 			}
 		}
 		return createdXUser;
+	}
+	
+	/**
+	 * 更新用户的组信息
+	 * @param userName
+	 * @param groupNameList
+	 * @return
+	 */
+	public VXUser updateUserGroup(String userName, List<String> groupNameList) {
+		VXUser vXUser = getXUserByUserName(userName);
+		Long userId = vXUser.getId();
+		List<Long> groupIdList = Lists.newArrayListWithExpectedSize(groupNameList.size());
+		for (String groupName : groupNameList) {
+			groupIdList.add(xGroupService.getGroupByGroupName(groupName).getId());
+		}
+
+		List<Long> groupUsersToRemove = new ArrayList<Long>();
+
+		if (groupIdList != null) {
+			SearchCriteria searchCriteria = new SearchCriteria();
+			searchCriteria.addParam("xUserId", userId);
+			VXGroupUserList vXGroupUserList = xGroupUserService.searchXGroupUsers(searchCriteria);
+			List<VXGroupUser> vXGroupUsers = vXGroupUserList.getList();
+
+			if (vXGroupUsers != null) {
+
+				// Create
+				for (Long groupId : groupIdList) {
+					boolean found = false;
+					for (VXGroupUser vXGroupUser : vXGroupUsers) {
+						if (groupId.equals(vXGroupUser.getParentGroupId())) {
+							found = true;
+							break;
+						}
+					}
+					if (!found) {
+						VXGroupUser vXGroupUser = createXGroupUser(userId, groupId);
+					}
+				}
+
+				// Delete
+				for (VXGroupUser vXGroupUser : vXGroupUsers) {
+					boolean found = false;
+					for (Long groupId : groupIdList) {
+						if (groupId.equals(vXGroupUser.getParentGroupId())) {
+							found = true;
+							break;
+						}
+					}
+					if (!found) {
+						groupUsersToRemove.add(vXGroupUser.getId());
+						// xGroupUserService.deleteResource(vXGroupUser.getId());
+					}
+				}
+
+			} else {
+				for (Long groupId : groupIdList) {
+					VXGroupUser vXGroupUser = createXGroupUser(userId, groupId);
+				}
+			}
+			vXUser.setGroupIdList(groupIdList);
+		} else {
+			logger.debug(
+					"Group id list can't be null for user. Group user " + "mapping not updated for user : " + userId);
+		}
+
+		for (Long groupUserId : groupUsersToRemove) {
+			xGroupUserService.deleteResource(groupUserId);
+		}
+
+		return vXUser;
 	}
 }

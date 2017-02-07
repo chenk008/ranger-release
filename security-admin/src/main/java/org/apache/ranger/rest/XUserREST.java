@@ -174,6 +174,13 @@ public class XUserREST {
 	public VXGroup createXGroup(VXGroup vXGroup) {
 		return xUserMgr.createXGroupWithoutLogin(vXGroup);
 	}
+	
+	@POST
+	@Path("/groups/create")
+	@Produces({ "application/xml", "application/json" })
+	public VXGroup createGroup(VXGroup vXGroup) {
+		return xUserMgr.createXGroupWithoutLogin(vXGroup);
+	}
 
 	@POST
 	@Path("/secure/groups")
@@ -406,6 +413,30 @@ public class XUserREST {
 			@Context HttpServletRequest request) {
 		boolean force = true;
 		xUserMgr.deleteXGroupUser(id, force);
+	}
+	
+	static class UserGroupInfo{
+		private String userName;
+		private List<String> groupNameList;
+		public String getUserName() {
+			return userName;
+		}
+		public void setUserName(String userName) {
+			this.userName = userName;
+		}
+		public List<String> getGroupNameList() {
+			return groupNameList;
+		}
+		public void setGroupNameList(List<String> groupNameList) {
+			this.groupNameList = groupNameList;
+		}
+	}
+	
+	@PUT
+	@Path("/groupusers/cover")
+	@Produces({ "application/xml", "application/json" })
+	public VXUser deleteXGroupUser(UserGroupInfo userGroupInfo) {
+		return xUserMgr.updateUserGroup(userGroupInfo.getUserName(), userGroupInfo.getGroupNameList());
 	}
 
 	/**
