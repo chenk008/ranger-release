@@ -287,8 +287,7 @@ public class XUserREST {
 	@Produces({ "application/xml", "application/json" })
 //	@PreAuthorize("hasRole('ROLE_SYS_ADMIN')")
 	public VXUser createUser(VXUser vXUser) {
-		
-		return xUserMgr.createXUserWithOutLogin(vXUser);
+		return xUserMgr.createXUserForHUE(vXUser);
 	}
 	
 	@POST

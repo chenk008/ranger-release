@@ -555,6 +555,33 @@ public class XUserMgr extends XUserMgrBase {
 //		checkAdminAccess();
 		return xUserService.createXUserWithOutLogin(vXUser);
 	}
+	
+	public VXUser createXUserForHUE(VXUser vXUser) {
+		VXPortalUser vXPortalUser = new VXPortalUser();
+		vXPortalUser.setLoginId(vXUser.getName());
+		vXPortalUser.setFirstName(vXUser.getFirstName());
+		if("null".equalsIgnoreCase(vXPortalUser.getFirstName())){
+			vXPortalUser.setFirstName("");
+		}
+		vXPortalUser.setLastName(vXUser.getLastName());
+		if("null".equalsIgnoreCase(vXPortalUser.getLastName())){
+			vXPortalUser.setLastName("");
+		}
+		vXPortalUser.setEmailAddress(vXUser.getEmailAddress());
+		if (vXPortalUser.getFirstName() != null
+				&& vXPortalUser.getLastName() != null
+				&& !vXPortalUser.getFirstName().trim().isEmpty()
+				&& !vXPortalUser.getLastName().trim().isEmpty()) {
+			vXPortalUser.setPublicScreenName(vXPortalUser.getFirstName() + " "
+					+ vXPortalUser.getLastName());
+		} else {
+			vXPortalUser.setPublicScreenName(vXUser.getName());
+		}
+		vXPortalUser.setPassword("10jqka@hue");
+		vXPortalUser.setUserRoleList(vXUser.getUserRoleList());
+		vXPortalUser = userMgr.createDefaultAccountUser(vXPortalUser);
+		return xUserService.createXUserWithOutLogin(vXUser);
+	}
 
 	public VXGroup createXGroup(VXGroup vXGroup) {
 		checkAdminAccess();

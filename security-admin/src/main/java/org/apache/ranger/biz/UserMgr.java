@@ -140,7 +140,7 @@ public class UserMgr {
 	public XXPortalUser createUser(VXPortalUser userProfile, int userStatus,
 			Collection<String> userRoleList) {
 		XXPortalUser user = mapVXPortalUserToXXPortalUser(userProfile);
-		checkAdminAccess();
+//		checkAdminAccess();
 		user = createUser(user, userStatus, userRoleList);
 
 		return user;
@@ -1130,7 +1130,8 @@ public class UserMgr {
 			userProfile.setUserSource(RangerCommonEnums.USER_EXTERNAL);
 		}
 		// access control
-		checkAdminAccess();
+//		checkAdminAccess();
+		
 		logger.info("create:" + userProfile.getEmailAddress());
 		XXPortalUser xXPortalUser = null;
 		String loginId = userProfile.getLoginId();
