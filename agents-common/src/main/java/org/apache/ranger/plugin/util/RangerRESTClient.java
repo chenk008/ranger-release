@@ -39,6 +39,9 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.WebTarget;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -48,15 +51,12 @@ import org.apache.ranger.authorization.hadoop.config.RangerConfiguration;
 import org.apache.ranger.authorization.hadoop.utils.RangerCredentialProvider;
 import org.apache.ranger.authorization.utils.StringUtil;
 import org.codehaus.jackson.jaxrs.JacksonJsonProvider;
+import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.client.ClientProperties;
+import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.api.client.config.ClientConfig;
-import com.sun.jersey.api.client.config.DefaultClientConfig;
-import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
-import com.sun.jersey.client.urlconnection.HTTPSProperties;
 
 
 public class RangerRESTClient {
@@ -153,8 +153,8 @@ public class RangerRESTClient {
 		mPassword = password;
 	}
 
-	public WebResource getResource(String relativeUrl) {
-		WebResource ret = getClient().resource(getUrl() + relativeUrl);
+	public WebTarget getResource(String relativeUrl) {
+		WebTarget ret = getClient().target(getUrl() + relativeUrl);
 		
 		return ret;
 	}
@@ -184,42 +184,51 @@ public class RangerRESTClient {
 
 	private Client buildClient() {
 		Client client = null;
+		System.out.println("-----------------------------------------------------------------------");
+		ClassLoader contextClassloader = Thread.currentThread().getContextClassLoader();
+        System.out.println("loader:"+contextClassloader);
+        System.out.println("loader:"+this.getClass().getClassLoader());
+		System.out.println("-----------------------------------------------------------------------");
+		
+		Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
+
 
 		if (mIsSSL) {
 			KeyManager[]   kmList     = getKeyManagers();
 			TrustManager[] tmList     = getTrustManagers();
 			SSLContext     sslContext = getSSLContext(kmList, tmList);
-			ClientConfig   config     = new DefaultClientConfig();
+			ClientConfig   config     = new ClientConfig();
 
-			config.getClasses().add(JacksonJsonProvider.class); // to handle List<> unmarshalling
+			config.register(JacksonJsonProvider.class); // to handle List<> unmarshalling
 
 			HostnameVerifier hv = new HostnameVerifier() {
 				public boolean verify(String urlHostName, SSLSession session) {
 					return session.getPeerHost().equals(urlHostName);
 				}
 			};
-
-			config.getProperties().put(HTTPSProperties.PROPERTY_HTTPS_PROPERTIES, new HTTPSProperties(hv, sslContext));
-
-			client = Client.create(config);
+			
+			client = ClientBuilder.newBuilder().sslContext(sslContext).hostnameVerifier(hv).build();
 		}
 
 		if(client == null) {
-			ClientConfig config = new DefaultClientConfig();
+			ClientConfig config = new ClientConfig();
 
-			config.getClasses().add(JacksonJsonProvider.class); // to handle List<> unmarshalling
+			config.register(JacksonJsonProvider.class); // to handle List<> unmarshalling
 
-			client = Client.create(config);
+			client = ClientBuilder.newClient(config);
 		}
 
 		// TODO: for testing only
 		if(!StringUtils.isEmpty(mUsername) || !StringUtils.isEmpty(mPassword)) {
-			client.addFilter(new HTTPBasicAuthFilter(mUsername, mPassword)); 
+			client.register(HttpAuthenticationFeature.basic(mUsername, mPassword));
 		}
 
 		// Set Connection Timeout and ReadTime for the PolicyRefresh
-		client.setConnectTimeout(mRestClientConnTimeOutMs);
-		client.setReadTimeout(mRestClientReadTimeOutMs);
+		client.property(ClientProperties.CONNECT_TIMEOUT, mRestClientConnTimeOutMs);
+	    client.property(ClientProperties.READ_TIMEOUT,    mRestClientReadTimeOutMs);
+	    
+		Thread.currentThread().setContextClassLoader(contextClassloader);
+
 
 		return client;
 	}

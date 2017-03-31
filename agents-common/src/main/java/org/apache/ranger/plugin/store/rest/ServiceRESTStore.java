@@ -22,6 +22,11 @@ package org.apache.ranger.plugin.store.rest;
 import java.util.List;
 import java.util.Map;
 
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.GenericType;
+import javax.ws.rs.core.Response;
+
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -34,10 +39,6 @@ import org.apache.ranger.plugin.store.ServiceStore;
 import org.apache.ranger.plugin.util.RangerRESTClient;
 import org.apache.ranger.plugin.util.SearchFilter;
 import org.apache.ranger.plugin.util.ServicePolicies;
-
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.GenericType;
-import com.sun.jersey.api.client.WebResource;
 
 
 public class ServiceRESTStore implements ServiceStore {
@@ -100,11 +101,11 @@ public class ServiceRESTStore implements ServiceStore {
 
 		RangerServiceDef ret = null;
 
-		WebResource    webResource = createWebResource(REST_URL_SERVICEDEF_CREATE);
-		ClientResponse response    = webResource.accept(REST_MIME_TYPE_JSON).type(REST_MIME_TYPE_JSON).post(ClientResponse.class, restClient.toJson(serviceDef));
+		WebTarget    WebTarget = createWebTarget(REST_URL_SERVICEDEF_CREATE);
+		Response response    = WebTarget.request(REST_MIME_TYPE_JSON).post(Entity.entity(serviceDef, REST_MIME_TYPE_JSON));
 
 		if(response != null && response.getStatus() == 200) {
-			ret = response.getEntity(RangerServiceDef.class);
+			ret = response.readEntity(RangerServiceDef.class);
 		} else {
 			RESTResponse resp = RESTResponse.fromClientResponse(response);
 
@@ -126,11 +127,11 @@ public class ServiceRESTStore implements ServiceStore {
 
 		RangerServiceDef ret = null;
 
-		WebResource    webResource = createWebResource(REST_URL_SERVICEDEF_UPDATE + serviceDef.getId());
-		ClientResponse response    = webResource.accept(REST_MIME_TYPE_JSON).type(REST_MIME_TYPE_JSON).put(ClientResponse.class, restClient.toJson(serviceDef));
+		WebTarget    WebTarget = createWebTarget(REST_URL_SERVICEDEF_UPDATE + serviceDef.getId());
+		Response response    = WebTarget.request(REST_MIME_TYPE_JSON).put(Entity.entity(serviceDef, REST_MIME_TYPE_JSON));
 
 		if(response != null && response.getStatus() == 200) {
-			ret = response.getEntity(RangerServiceDef.class);
+			ret = response.readEntity(RangerServiceDef.class);
 		} else {
 			RESTResponse resp = RESTResponse.fromClientResponse(response);
 
@@ -150,8 +151,8 @@ public class ServiceRESTStore implements ServiceStore {
 			LOG.debug("==> ServiceRESTStore.deleteServiceDef(" + id + ")");
 		}
 
-		WebResource    webResource = createWebResource(REST_URL_SERVICEDEF_DELETE + id);
-		ClientResponse response    = webResource.accept(REST_MIME_TYPE_JSON).delete(ClientResponse.class);
+		WebTarget    WebTarget = createWebTarget(REST_URL_SERVICEDEF_DELETE + id);
+		Response response    = WebTarget.request(REST_MIME_TYPE_JSON).delete();
 
 		if(response == null || (response.getStatus() != 200 && response.getStatus() != 204)) {
 			RESTResponse resp = RESTResponse.fromClientResponse(response);
@@ -172,11 +173,11 @@ public class ServiceRESTStore implements ServiceStore {
 
 		RangerServiceDef ret = null;
 
-		WebResource    webResource = createWebResource(REST_URL_SERVICEDEF_GET + id);
-		ClientResponse response    = webResource.accept(REST_MIME_TYPE_JSON).get(ClientResponse.class);
+		WebTarget    WebTarget = createWebTarget(REST_URL_SERVICEDEF_GET + id);
+		Response response    = WebTarget.request(REST_MIME_TYPE_JSON).get();
 
 		if(response != null && response.getStatus() == 200) {
-			ret = response.getEntity(RangerServiceDef.class);
+			ret = response.readEntity(RangerServiceDef.class);
 		} else {
 			RESTResponse resp = RESTResponse.fromClientResponse(response);
 
@@ -198,11 +199,11 @@ public class ServiceRESTStore implements ServiceStore {
 
 		RangerServiceDef ret = null;
 
-		WebResource    webResource = createWebResource(REST_URL_SERVICEDEF_GET_BY_NAME + name);
-		ClientResponse response    = webResource.accept(REST_MIME_TYPE_JSON).get(ClientResponse.class);
+		WebTarget    WebTarget = createWebTarget(REST_URL_SERVICEDEF_GET_BY_NAME + name);
+		Response response    = WebTarget.request(REST_MIME_TYPE_JSON).get();
 
 		if(response != null && response.getStatus() == 200) {
-			ret = response.getEntity(RangerServiceDef.class);
+			ret = response.readEntity(RangerServiceDef.class);
 		} else {
 			RESTResponse resp = RESTResponse.fromClientResponse(response);
 
@@ -224,11 +225,11 @@ public class ServiceRESTStore implements ServiceStore {
 
 		List<RangerServiceDef> ret = null;
 
-		WebResource    webResource = createWebResource(REST_URL_SERVICEDEF_GET_ALL, filter);
-		ClientResponse response    = webResource.accept(REST_MIME_TYPE_JSON).get(ClientResponse.class);
+		WebTarget    WebTarget = createWebTarget(REST_URL_SERVICEDEF_GET_ALL, filter);
+		Response response    = WebTarget.request(REST_MIME_TYPE_JSON).get();
 
 		if(response != null && response.getStatus() == 200) {
-			ret = response.getEntity(new GenericType<List<RangerServiceDef>>() { });
+			ret = response.readEntity(new GenericType<List<RangerServiceDef>>() { });
 		} else {
 			RESTResponse resp = RESTResponse.fromClientResponse(response);
 
@@ -250,11 +251,11 @@ public class ServiceRESTStore implements ServiceStore {
 
 		RangerService ret = null;
 
-		WebResource    webResource = createWebResource(REST_URL_SERVICE_CREATE);
-		ClientResponse response    = webResource.accept(REST_MIME_TYPE_JSON).type(REST_MIME_TYPE_JSON).post(ClientResponse.class, restClient.toJson(service));
+		WebTarget    WebTarget = createWebTarget(REST_URL_SERVICE_CREATE);
+		Response response    = WebTarget.request(REST_MIME_TYPE_JSON).post(Entity.entity(service, REST_MIME_TYPE_JSON));
 
 		if(response != null && response.getStatus() == 200) {
-			ret = response.getEntity(RangerService.class);
+			ret = response.readEntity(RangerService.class);
 		} else {
 			RESTResponse resp = RESTResponse.fromClientResponse(response);
 
@@ -276,11 +277,11 @@ public class ServiceRESTStore implements ServiceStore {
 
 		RangerService ret = null;
 
-		WebResource    webResource = createWebResource(REST_URL_SERVICE_UPDATE + service.getId());
-		ClientResponse response    = webResource.accept(REST_MIME_TYPE_JSON).type(REST_MIME_TYPE_JSON).put(ClientResponse.class, restClient.toJson(service));
+		WebTarget    WebTarget = createWebTarget(REST_URL_SERVICE_UPDATE + service.getId());
+		Response response    = WebTarget.request(REST_MIME_TYPE_JSON).put(Entity.entity(service, REST_MIME_TYPE_JSON));
 
 		if(response != null && response.getStatus() == 200) {
-			ret = response.getEntity(RangerService.class);
+			ret = response.readEntity(RangerService.class);
 		} else {
 			RESTResponse resp = RESTResponse.fromClientResponse(response);
 
@@ -300,8 +301,8 @@ public class ServiceRESTStore implements ServiceStore {
 			LOG.debug("==> ServiceRESTStore.deleteService(" + id + ")");
 		}
 
-		WebResource    webResource = createWebResource(REST_URL_SERVICE_DELETE + id);
-		ClientResponse response    = webResource.accept(REST_MIME_TYPE_JSON).delete(ClientResponse.class);
+		WebTarget    WebTarget = createWebTarget(REST_URL_SERVICE_DELETE + id);
+		Response response    = WebTarget.request(REST_MIME_TYPE_JSON).delete();
 
 		if(response == null || (response.getStatus() != 200 && response.getStatus() != 204)) {
 			RESTResponse resp = RESTResponse.fromClientResponse(response);
@@ -322,11 +323,11 @@ public class ServiceRESTStore implements ServiceStore {
 
 		RangerService ret = null;
 
-		WebResource    webResource = createWebResource(REST_URL_SERVICE_GET + id);
-		ClientResponse response    = webResource.accept(REST_MIME_TYPE_JSON).get(ClientResponse.class);
+		WebTarget    WebTarget = createWebTarget(REST_URL_SERVICE_GET + id);
+		Response response    = WebTarget.request(REST_MIME_TYPE_JSON).get();
 
 		if(response != null && response.getStatus() == 200) {
-			ret = response.getEntity(RangerService.class);
+			ret = response.readEntity(RangerService.class);
 		} else {
 			RESTResponse resp = RESTResponse.fromClientResponse(response);
 
@@ -348,11 +349,11 @@ public class ServiceRESTStore implements ServiceStore {
 
 		RangerService ret = null;
 
-		WebResource    webResource = createWebResource(REST_URL_SERVICE_GET_BY_NAME + name);
-		ClientResponse response    = webResource.accept(REST_MIME_TYPE_JSON).get(ClientResponse.class);
+		WebTarget    WebTarget = createWebTarget(REST_URL_SERVICE_GET_BY_NAME + name);
+		Response response    = WebTarget.request(REST_MIME_TYPE_JSON).get();
 
 		if(response != null && response.getStatus() == 200) {
-			ret = response.getEntity(RangerService.class);
+			ret = response.readEntity(RangerService.class);
 		} else {
 			RESTResponse resp = RESTResponse.fromClientResponse(response);
 
@@ -374,11 +375,11 @@ public class ServiceRESTStore implements ServiceStore {
 
 		List<RangerService> ret = null;
 
-		WebResource    webResource = createWebResource(REST_URL_SERVICE_GET_ALL, filter);
-		ClientResponse response    = webResource.accept(REST_MIME_TYPE_JSON).get(ClientResponse.class);
+		WebTarget    WebTarget = createWebTarget(REST_URL_SERVICE_GET_ALL, filter);
+		Response response    = WebTarget.request(REST_MIME_TYPE_JSON).get();
 
 		if(response != null && response.getStatus() == 200) {
-			ret = response.getEntity(new GenericType<List<RangerService>>() { });
+			ret = response.readEntity(new GenericType<List<RangerService>>() { });
 		} else {
 			RESTResponse resp = RESTResponse.fromClientResponse(response);
 
@@ -400,11 +401,11 @@ public class ServiceRESTStore implements ServiceStore {
 
 		RangerPolicy ret = null;
 
-		WebResource    webResource = createWebResource(REST_URL_POLICY_CREATE);
-		ClientResponse response    = webResource.accept(REST_MIME_TYPE_JSON).type(REST_MIME_TYPE_JSON).post(ClientResponse.class, restClient.toJson(policy));
+		WebTarget    WebTarget = createWebTarget(REST_URL_POLICY_CREATE);
+		Response response    = WebTarget.request(REST_MIME_TYPE_JSON).post(Entity.entity(policy, REST_MIME_TYPE_JSON));
 
 		if(response != null && response.getStatus() == 200) {
-			ret = response.getEntity(RangerPolicy.class);
+			ret = response.readEntity(RangerPolicy.class);
 		} else {
 			RESTResponse resp = RESTResponse.fromClientResponse(response);
 
@@ -426,11 +427,11 @@ public class ServiceRESTStore implements ServiceStore {
 
 		RangerPolicy ret = null;
 
-		WebResource    webResource = createWebResource(REST_URL_POLICY_UPDATE + policy.getId());
-		ClientResponse response    = webResource.accept(REST_MIME_TYPE_JSON).type(REST_MIME_TYPE_JSON).put(ClientResponse.class, restClient.toJson(policy));
+		WebTarget    WebTarget = createWebTarget(REST_URL_POLICY_UPDATE + policy.getId());
+		Response response    = WebTarget.request(REST_MIME_TYPE_JSON).put(Entity.entity(policy, REST_MIME_TYPE_JSON));
 
 		if(response != null && response.getStatus() == 200) {
-			ret = response.getEntity(RangerPolicy.class);
+			ret = response.readEntity(RangerPolicy.class);
 		} else {
 			RESTResponse resp = RESTResponse.fromClientResponse(response);
 
@@ -450,8 +451,8 @@ public class ServiceRESTStore implements ServiceStore {
 			LOG.debug("==> ServiceRESTStore.deletePolicy(" + id + ")");
 		}
 
-		WebResource    webResource = createWebResource(REST_URL_POLICY_DELETE + id);
-		ClientResponse response    = webResource.accept(REST_MIME_TYPE_JSON).delete(ClientResponse.class);
+		WebTarget    WebTarget = createWebTarget(REST_URL_POLICY_DELETE + id);
+		Response response    = WebTarget.request(REST_MIME_TYPE_JSON).delete();
 
 		if(response == null || (response.getStatus() != 200 && response.getStatus() != 204)) {
 			RESTResponse resp = RESTResponse.fromClientResponse(response);
@@ -472,11 +473,11 @@ public class ServiceRESTStore implements ServiceStore {
 
 		RangerPolicy ret = null;
 
-		WebResource    webResource = createWebResource(REST_URL_POLICY_GET + id);
-		ClientResponse response    = webResource.accept(REST_MIME_TYPE_JSON).get(ClientResponse.class);
+		WebTarget    WebTarget = createWebTarget(REST_URL_POLICY_GET + id);
+		Response response    = WebTarget.request(REST_MIME_TYPE_JSON).get();
 
 		if(response != null && response.getStatus() == 200) {
-			ret = response.getEntity(RangerPolicy.class);
+			ret = response.readEntity(RangerPolicy.class);
 		} else {
 			RESTResponse resp = RESTResponse.fromClientResponse(response);
 
@@ -498,11 +499,11 @@ public class ServiceRESTStore implements ServiceStore {
 
 		List<RangerPolicy> ret = null;
 
-		WebResource    webResource = createWebResource(REST_URL_POLICY_GET_ALL, filter);
-		ClientResponse response    = webResource.accept(REST_MIME_TYPE_JSON).get(ClientResponse.class);
+		WebTarget    WebTarget = createWebTarget(REST_URL_POLICY_GET_ALL, filter);
+		Response response    = WebTarget.request(REST_MIME_TYPE_JSON).get();
 
 		if(response != null && response.getStatus() == 200) {
-			ret = response.getEntity(new GenericType<List<RangerPolicy>>() { });
+			ret = response.readEntity(new GenericType<List<RangerPolicy>>() { });
 		} else {
 			RESTResponse resp = RESTResponse.fromClientResponse(response);
 
@@ -524,11 +525,11 @@ public class ServiceRESTStore implements ServiceStore {
 
 		List<RangerPolicy> ret = null;
 
-		WebResource    webResource = createWebResource(REST_URL_POLICY_GET_FOR_SERVICE + serviceId, filter);
-		ClientResponse response    = webResource.accept(REST_MIME_TYPE_JSON).get(ClientResponse.class);
+		WebTarget    WebTarget = createWebTarget(REST_URL_POLICY_GET_FOR_SERVICE + serviceId, filter);
+		Response response    = WebTarget.request(REST_MIME_TYPE_JSON).get();
 
 		if(response != null && response.getStatus() == 200) {
-			ret = response.getEntity(new GenericType<List<RangerPolicy>>() { });
+			ret = response.readEntity(new GenericType<List<RangerPolicy>>() { });
 		} else {
 			RESTResponse resp = RESTResponse.fromClientResponse(response);
 
@@ -550,11 +551,11 @@ public class ServiceRESTStore implements ServiceStore {
 
 		List<RangerPolicy> ret = null;
 
-		WebResource    webResource = createWebResource(REST_URL_POLICY_GET_FOR_SERVICE_BY_NAME + serviceName, filter);
-		ClientResponse response    = webResource.accept(REST_MIME_TYPE_JSON).get(ClientResponse.class);
+		WebTarget    WebTarget = createWebTarget(REST_URL_POLICY_GET_FOR_SERVICE_BY_NAME + serviceName, filter);
+		Response response    = WebTarget.request(REST_MIME_TYPE_JSON).get();
 
 		if(response != null && response.getStatus() == 200) {
-			ret = response.getEntity(new GenericType<List<RangerPolicy>>() { });
+			ret = response.readEntity(new GenericType<List<RangerPolicy>>() { });
 		} else {
 			RESTResponse resp = RESTResponse.fromClientResponse(response);
 
@@ -576,11 +577,11 @@ public class ServiceRESTStore implements ServiceStore {
 
 		ServicePolicies ret = null;
 
-		WebResource    webResource = createWebResource(REST_URL_POLICY_GET_FOR_SERVICE_IF_UPDATED + serviceName + "/" + lastKnownVersion);
-		ClientResponse response    = webResource.accept(REST_MIME_TYPE_JSON).get(ClientResponse.class);
+		WebTarget    WebTarget = createWebTarget(REST_URL_POLICY_GET_FOR_SERVICE_IF_UPDATED + serviceName + "/" + lastKnownVersion);
+		Response response    = WebTarget.request(REST_MIME_TYPE_JSON).get();
 
 		if(response != null && response.getStatus() == 200) {
-			ret = response.getEntity(ServicePolicies.class);
+			ret = response.readEntity(ServicePolicies.class);
 		} else if(response != null && response.getStatus() == 304) {
 			// no change
 		} else {
@@ -596,12 +597,12 @@ public class ServiceRESTStore implements ServiceStore {
 		return ret;
 	}
 
-	private WebResource createWebResource(String url) {
-		return createWebResource(url, null);
+	private WebTarget createWebTarget(String url) {
+		return createWebTarget(url, null);
 	}
 
-	private WebResource createWebResource(String url, SearchFilter filter) {
-		WebResource ret = restClient.getResource(url);
+	private WebTarget createWebTarget(String url, SearchFilter filter) {
+		WebTarget ret = restClient.getResource(url);
 
 		if(filter != null && !MapUtils.isEmpty(filter.getParams())) {
 			for(Map.Entry<String, String> e : filter.getParams().entrySet()) {

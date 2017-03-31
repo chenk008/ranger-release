@@ -20,15 +20,16 @@ package org.apache.ranger.admin.client.datatype;
 
 import java.util.List;
 
+import javax.ws.rs.core.Response;
+
 import org.apache.log4j.Logger;
 import org.apache.ranger.authorization.utils.StringUtil;
 import org.codehaus.jackson.annotate.JsonAutoDetect;
-import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.codehaus.jackson.annotate.JsonAutoDetect.Visibility;
+import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
-
-import com.sun.jersey.api.client.ClientResponse;
+import org.glassfish.jersey.client.ClientResponse;
 
 
 @JsonAutoDetect(getterVisibility = Visibility.NONE, setterVisibility = Visibility.NONE, fieldVisibility = Visibility.ANY)
@@ -90,10 +91,10 @@ public class RESTResponse {
 		return StringUtil.isEmpty(msgDesc) ? ("HTTP " + httpStatusCode) : msgDesc;
 	}
 
-	public static RESTResponse fromClientResponse(ClientResponse response) {
+	public static RESTResponse fromClientResponse(Response response) {
 		RESTResponse ret = null;
 
-		String jsonString = response == null ? null : response.getEntity(String.class);
+		String jsonString = response == null ? null : response.readEntity(String.class);
 		int    httpStatus = response == null ? 0 : response.getStatus();
 
 		if(! StringUtil.isEmpty(jsonString)) {

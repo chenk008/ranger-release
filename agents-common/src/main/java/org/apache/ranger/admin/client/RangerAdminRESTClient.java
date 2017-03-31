@@ -22,6 +22,11 @@ package org.apache.ranger.admin.client;
 import java.util.Collections;
 import java.util.List;
 
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.security.AccessControlException;
@@ -32,11 +37,9 @@ import org.apache.ranger.plugin.util.GrantRevokeRequest;
 import org.apache.ranger.plugin.util.RangerRESTClient;
 import org.apache.ranger.plugin.util.RangerRESTUtils;
 import org.apache.ranger.plugin.util.ServicePolicies;
+import org.glassfish.jersey.client.ClientResponse;
 
 import com.google.common.collect.Lists;
-import com.google.gson.Gson;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.WebResource;
 
 public class RangerAdminRESTClient implements RangerAdminClient {
 	private static final Log LOG = LogFactory.getLog(RangerAdminRESTClient.class);
@@ -76,15 +79,15 @@ public class RangerAdminRESTClient implements RangerAdminClient {
 
 		ServicePolicies ret = null;
 
-		WebResource webResource = createWebResource(
+		WebTarget webResource = createWebResource(
 				RangerRESTUtils.REST_URL_POLICY_GET_FOR_SERVICE_IF_UPDATED + serviceName)
 						.queryParam(RangerRESTUtils.REST_PARAM_LAST_KNOWN_POLICY_VERSION,
 								Long.toString(lastKnownVersion))
 						.queryParam(RangerRESTUtils.REST_PARAM_PLUGIN_ID, pluginId);
-		ClientResponse response = webResource.accept(RangerRESTUtils.REST_MIME_TYPE_JSON).get(ClientResponse.class);
+		Response response = webResource.request(RangerRESTUtils.REST_MIME_TYPE_JSON).get();
 
 		if (response != null && response.getStatus() == 200) {
-			ret = response.getEntity(ServicePolicies.class);
+			ret = response.readEntity(ServicePolicies.class);
 		} else if (response != null && response.getStatus() == 304) {
 			// no change
 		} else {
@@ -107,10 +110,9 @@ public class RangerAdminRESTClient implements RangerAdminClient {
 			LOG.debug("==> RangerAdminRESTClient.grantAccess(" + request + ")");
 		}
 
-		WebResource webResource = createWebResource(RangerRESTUtils.REST_URL_SERVICE_GRANT_ACCESS + serviceName)
+		WebTarget webResource = createWebResource(RangerRESTUtils.REST_URL_SERVICE_GRANT_ACCESS + serviceName)
 				.queryParam(RangerRESTUtils.REST_PARAM_PLUGIN_ID, pluginId);
-		ClientResponse response = webResource.accept(RangerRESTUtils.REST_EXPECTED_MIME_TYPE)
-				.type(RangerRESTUtils.REST_EXPECTED_MIME_TYPE).post(ClientResponse.class, restClient.toJson(request));
+		Response response = webResource.request(RangerRESTUtils.REST_EXPECTED_MIME_TYPE).post(Entity.entity(request, MediaType.APPLICATION_XML));
 
 		if (response != null && response.getStatus() != 200) {
 			LOG.error("grantAccess() failed: HTTP status=" + response.getStatus());
@@ -135,10 +137,9 @@ public class RangerAdminRESTClient implements RangerAdminClient {
 			LOG.debug("==> RangerAdminRESTClient.revokeAccess(" + request + ")");
 		}
 
-		WebResource webResource = createWebResource(RangerRESTUtils.REST_URL_SERVICE_REVOKE_ACCESS + serviceName)
+		WebTarget webResource = createWebResource(RangerRESTUtils.REST_URL_SERVICE_REVOKE_ACCESS + serviceName)
 				.queryParam(RangerRESTUtils.REST_PARAM_PLUGIN_ID, pluginId);
-		ClientResponse response = webResource.accept(RangerRESTUtils.REST_EXPECTED_MIME_TYPE)
-				.type(RangerRESTUtils.REST_EXPECTED_MIME_TYPE).post(ClientResponse.class, restClient.toJson(request));
+		Response response = webResource.request(RangerRESTUtils.REST_EXPECTED_MIME_TYPE).post(Entity.entity(request, MediaType.APPLICATION_XML));
 
 		if (response != null && response.getStatus() != 200) {
 			LOG.error("revokeAccess() failed: HTTP status=" + response.getStatus());
@@ -171,9 +172,9 @@ public class RangerAdminRESTClient implements RangerAdminClient {
 		}
 	}
 
-	private WebResource createWebResource(String url) {
+	private WebTarget createWebResource(String url) {
 		LOG.info(restClient.getUrl());
-		WebResource ret = restClient.getResource(url);
+		WebTarget ret = restClient.getResource(url);
 
 		return ret;
 	}
@@ -184,12 +185,12 @@ public class RangerAdminRESTClient implements RangerAdminClient {
 			LOG.debug("==> RangerAdminRESTClient.getUserGroup(" + user + ")");
 		}
 
-		WebResource webResource = createWebResource("/service/xusers/users/userName/" + user);
-		ClientResponse response = webResource.accept(RangerRESTUtils.REST_MIME_TYPE_JSON).get(ClientResponse.class);
+		WebTarget webResource = createWebResource("/service/xusers/users/userName/" + user);
+		Response response = webResource.request(RangerRESTUtils.REST_MIME_TYPE_JSON).get();
 
 		VXUser ret = null;
 		if (response != null && response.getStatus() == 200) {
-			ret = response.getEntity(VXUser.class);
+			ret = response.readEntity(VXUser.class);
 		} else if (response != null && response.getStatus() == 304) {
 			// no change
 		} else {
@@ -220,13 +221,11 @@ public class RangerAdminRESTClient implements RangerAdminClient {
 			LOG.debug("==> RangerAdminRESTClient.getGroupByUserId(" + userId + ")");
 		}
 
-		WebResource webResource = createWebResource("/service/xusers/users/" + +userId);
-		ClientResponse response = webResource.accept(RangerRESTUtils.REST_MIME_TYPE_JSON).get(ClientResponse.class);
+		WebTarget webResource = createWebResource("/service/xusers/users/" + +userId);
+		Response response = webResource.request(RangerRESTUtils.REST_MIME_TYPE_JSON).get();
 		VXUser ret = null;
 		if (response != null && response.getStatus() == 200) {
-			String data = response.getEntity(String.class);
-			LOG.info(data);
-			ret = new Gson().fromJson(data, VXUser.class);
+			ret =  response.readEntity(VXUser.class);
 		} else if (response != null && response.getStatus() == 304) {
 			// no change
 		} else {

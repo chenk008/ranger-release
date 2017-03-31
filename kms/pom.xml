@@ -32,7 +32,7 @@
   		<groupId>org.apache.hadoop</groupId>
   		<artifactId>hadoop-kms</artifactId>
   		<version>${hadoop-common-kms.version}</version>
-  		<type>war</type>
+  		<classifier>classes</classifier>
   	</dependency>
     <dependency>
         <groupId>org.apache.hadoop</groupId>

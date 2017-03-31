@@ -10,3 +10,14 @@ winpkg/target
 .DS_Store
 .gitignore
 .idea
+ranger-storm-plugin-shim/target/antrun/build-main.xml
+ranger-plugin-classloader/target/ranger-plugin-classloader-0.5.0.jar
+ranger-plugin-classloader/target/
+ranger-storm-plugin-shim/target/
+ranger-knox-plugin-shim/target/
+ranger-kafka-plugin-shim/target/
+ranger-hive-plugin-shim/target/
+ranger-yarn-plugin-shim/target/
+ranger-hdfs-plugin-shim/target/
+*/target/
+ugsync/ldapconfigchecktool/
